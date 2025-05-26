@@ -12,10 +12,15 @@ provider "aws" {
   region = "eu-west-2" # Replace with your desired region
 }
 
+data "aws_caller_identity" "current" {}
+output "caller_arn" {
+  value = data.aws_caller_identity.current.arn
+}
+
 
 # Create a security group to allow HTTP access
 resource "aws_security_group" "web_sg" {
-  name        = "allow_http"
+  name        = data.aws_caller_identity.current.arn
   description = "Allow HTTP inbound traffic"
 
  ingress {
@@ -46,13 +51,13 @@ yum update -y
 yum install -y httpd
 systemctl start httpd
 systemctl enable httpd
-echo "<html><body><h1>Hello, World!</h1></body></html>" > /var/www/html/index.html
+echo "<html><body><h1>Hello, World! from James</h1></body></html>" > /var/www/html/index.html
   EOF
 
   vpc_security_group_ids = [aws_security_group.web_sg.id]
 
   tags = {
-    Name = "web-server-instance"
+    Name = data.aws_caller_identity.current.arn
   }
 }
 
